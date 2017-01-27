@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Auction WP plugin</title>
+        
+    </head>
+    <body>
+        <div id="hodnota"></div>
+        <script>
+            var socket = new WebSocket('ws://127.0.0.1:8087');
+            socket.onmessage = function (e) {
+                document.getElementById('hodnota').innerHTML = e.data;
+            }
+        </script>
+    </body>
+</html>
