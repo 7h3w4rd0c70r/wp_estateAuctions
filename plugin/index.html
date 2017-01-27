@@ -3,15 +3,23 @@
 <html>
     <head>
         <title>Auction WP plugin</title>
-        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     </head>
     <body>
         <div id="hodnota"></div>
+        <br>
+        <button class="prihod" value="5">5 Kč</button>
+        <button class="prihod" value="10">10 Kč</button>
+        <button class="prihod" value="3000">3000 Kč</button>
         <script>
-            var socket = new WebSocket('ws://127.0.0.1:8087');
+            var socket = new WebSocket('ws://192.168.1.23:8087/socket');
             socket.onmessage = function (e) {
                 document.getElementById('hodnota').innerHTML = e.data;
             }
+            $('.prihod').click(function () {
+                var hodnota = $(this).val();
+                socket.send('{"value": "' + hodnota + '"}');
+            });
         </script>
     </body>
 </html>

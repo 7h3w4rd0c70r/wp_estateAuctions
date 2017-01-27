@@ -1,48 +1,33 @@
-/*
+
 var app = require('express')();
+var http = require('http');
+var url = require('url');
+var WebSocket = require('ws');
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://127.0.0.1:27017/estateAuctions');
 
-app.get('/test', function (req, res) {
-    var i = 1;
-    setInterval(function () {
-        res.write(i++ + ' seconds\n');
-    }, 1000);
-});
+var Auction = mongoose.model('auction', { currentPrice: { type: 'Number', default: 0 } });
 
-var port = 8087;
-app.listen(port, function () {
-    console.log('\x1b[32mListening on port ', port);
-});
-*/
+var server = http.createServer(app);
+var wss = new WebSocket.Server({ server: server, path: '/socket' });
 
-const express = require('express');
-const http = require('http');
-const url = require('url');
-const WebSocket = require('ws');
-
-const app = express();
-
-app.use(function (req, res) {
-  res.send({ msg: "hello" });
-});
-
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', function connection(ws) {
-  const location = url.parse(ws.upgradeReq.url, true);
-  // You might use location.query.access_token to authenticate or share sessions
-  // or ws.upgradeReq.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
-
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+wss.on('connection', function (ws) {
+  var location = url.parse(ws.upgradeReq.url, true);
+  
+  ws.on('message', function (data) {
+    data = JSON.parse(data);
+    Auction.findOne({ name: 'test' }, function (err, auction) {
+        Auction.update({ name: 'test' }, { currentPrice: Number(Number(auction.currentPrice) + Number(data.value)) }, function (err) { });
+    });
   });
 
-  var i = 1;
   setInterval(function () {
-    ws.send(i++ + ' seconds');
-  }, 1000);
+    Auction.findOne({ name: 'test' }, function (err, auction) {
+        ws.send(auction.currentPrice + ',- Kč');
+    });
+  }, 200);
 });
 
-server.listen(8087, function listening() {
-  console.log('Listening on %d', server.address().port);
+server.listen(8087, function () {
+  console.log('\x1b[32mListening on port ', server.address().port);
 });
