@@ -9,6 +9,7 @@
   "author": "Patrik Šimunič",
   "license": "ISC",
   "devDependencies": {
+    "bluebird": "^3.4.7",
     "express": "^4.14.0",
     "http": "0.0.0",
     "mongoose": "^4.7.8",
