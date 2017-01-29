@@ -1,6 +1,8 @@
 
 var router = require('express').Router();
 
+var Auction = require('../models/Auction.js');
+
 router.get('/', function (req, res) {
     res.send('Welcome in our estate auction hall.');
 });
@@ -13,10 +15,15 @@ router.post('/invite', function (req, res) {
     
 });
 
-router.get('/token/:token', function (req, res) {
-    var token = req.params['token'];
+router.get('/create', function (req, res) {
+    
+});
+
+router.post('/auction', function (req, res) {
+    Auction
+        .create(req.body['name'], req.body['startPrice']);
     res.send(JSON.stringify({
-        estate: 'estateId'
+        status: 'ok'
     }));
 });
 

@@ -2,6 +2,7 @@
 
 <html>
     <head>
+        <meta charset="UTF-8">
         <title>Auction WP plugin</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/epoch/0.8.4/css/epoch.min.css" />
@@ -46,8 +47,22 @@
         </div>
         <script>
             $(document).ready(function () {
+                function getParam (name) {
+                    var result = null,
+                    tmp = [];
+                    location.search
+                        .substr(1)
+                        .split("&")
+                        .forEach(function (item) {
+                            tmp = item.split("=");
+                            if (tmp[0] === name) result = decodeURIComponent(tmp[1]);
+                        });
+                    return result;
+                }
                 (function establishConnection () {
-                    var socket = new WebSocket('ws://127.0.0.1:8087/rt/auction?token=psimunic');
+                    var token = getParam('token');
+                    if (!token || token == '') return null;
+                    var socket = new WebSocket('ws://192.168.1.10:8087/rt/auction?token=' + token);
                     var loop = 0;
                     var currentValue;
                     var history = [ ];
@@ -59,14 +74,22 @@
                             i--;
                         });
                     }
+                    function formatNum (n) {
+                        var rx=  /(\d+)(\d{3})/;
+                        return String(n).replace(/^\d+/, function (w) {
+                            while (rx.test(w))
+                                w= w.replace(rx, '$1 $2');
+                            return w;
+                        });
+                    }
                 
                     socket.onmessage = function (e) {
                         var data = JSON.parse(e.data);
-                        $('#currentPrice').text(data.currentPrice);
+                        $('#currentPrice').text(formatNum(data.currentPrice));
                         if (currentValue != Number(data.currentPrice)) {
                             if (history.length > 4) history.shift();
                             history.push({
-                                value: data.currentPrice,
+                                value: formatNum(data.currentPrice),
                                 bidder: data.currentWinner
                             });
                             currentValue = Number(data.currentPrice);
