@@ -40,32 +40,38 @@
                     <div class="ui button bid" data-value="500">500,- Kč</div>
                 </div>
                 <br><br>
-                <!--<div id="realTimeDisplay" style="width: 800px; height: 200px"></div>-->
+                <div id="history"></div>
                 <br><br>
             </div>
         </div>
         <script>
             $(document).ready(function () {
                 (function establishConnection () {
-                    var socket = new WebSocket('ws://192.168.1.23:8087/socket');
+                    var socket = new WebSocket('ws://127.0.0.1:8087/rt/auction?token=psimunic');
                     var loop = 0;
-                    /*var chartData = [{ label: 'Nabídka', values: [ ] }];
-                
-                    var chartInstance = $('#realTimeDisplay').epoch({
-                        type: 'time.line',
-                        axes: [ 'bottom', 'left', 'right' ],
-                        data: chartData
-                    });*/
+                    var currentValue;
+                    var history = [ ];
+                    function renderHistory () {
+                        $('#history').html('');
+                        var i = history.length;
+                        history.forEach(function (item) {
+                            $('#history').html('<div>' + (i == 1 ? '<u>' : '') + i + '. ' + (item.bidder[0] + item.bidder[1] + '...' + item.bidder[item.bidder.length - 2] + item.bidder[item.bidder.length - 1]).toLowerCase() + ': ' + item.value + ',- Kč' + (i == 1 ? '</u>' : '') + '</div>' + $('#history').html());
+                            i--;
+                        });
+                    }
                 
                     socket.onmessage = function (e) {
                         var data = JSON.parse(e.data);
                         $('#currentPrice').text(data.currentPrice);
-                        /*chartData[0].values.shift();
-                        chartData[0].values.push({
-                            time: new Date(),
-                            y: Number(data.currentPrice)
-                        });
-                        chartInstance.push(chartData);*/
+                        if (currentValue != Number(data.currentPrice)) {
+                            if (history.length > 4) history.shift();
+                            history.push({
+                                value: data.currentPrice,
+                                bidder: data.currentWinner
+                            });
+                            currentValue = Number(data.currentPrice);
+                            renderHistory();
+                        }
                     }
                 
                     socket.onopen = function () {
@@ -75,9 +81,6 @@
                     }
                 
                     socket.onclose = function () {
-                        loop = setInterval(function () {
-                            establishConnection();
-                        }, 1000);
                         $('#errorDisplay')
                             .dimmer({
                                 closable: false
